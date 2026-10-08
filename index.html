@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Solarex </title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.css" />
+    <link rel="stylesheet" href="./solar.css" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.js"></script>
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="#roof-map" aria-label="Solarex home">
+        <span class="brand-icon">S</span>
+        <span>Solarex </span>
+      </a>
+      <nav class="nav-links" aria-label="Page navigation">
+        <a href="#roof-map">Roof map</a>
+        <a href="#calculator-form">Calculator</a>
+        <a href="#nearby-suppliers">Find suppliers</a>
+        <a href="#method">Method</a>
+        <a href="#open-source">Open source</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="intro-band">
+        <div class="intro-grid">
+          <div class="intro-copy">
+            <p class="eyebrow">Free solar rooftop calculator</p>
+            <h1>Find out if rooftop solar makes sense for your home.</h1>
+            <p class="lead">
+              Enter your city, monthly electricity bill, and usable roof area. Get a quick estimate
+              for panels, cost after subsidy, savings, payback period, and CO2 avoided.
+            </p>
+            <a class="primary-link" href="#calculator">Calculate my savings</a>
+          </div>
+          <div class="sun-panel" aria-hidden="true">
+            <div class="sun"></div>
+            <div class="panel-grid">
+              <span></span><span></span><span></span><span></span>
+              <span></span><span></span><span></span><span></span>
+              <span></span><span></span><span></span><span></span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="calculator" class="calculator-band">
+        <div class="section-heading">
+          <p class="eyebrow">10 second estimate</p>
+          <h2>Solar calculator</h2>
+          <p>
+            Measure the roof first, then enter the bill. The report updates instantly with panels,
+            cost after subsidy, savings, payback, energy output, and CO2 avoided. Electricity
+            rates use the domestic 4 kW / 400 kWh per month tariff table shared by you.
+          </p>
+        </div>
+
+        <div class="workflow-strip">
+          <article>
+            <span>1</span>
+            <strong>Find house</strong>
+            <p>Search address on satellite view.</p>
+          </article>
+          <article>
+            <span>2</span>
+            <strong>Trace roof</strong>
+            <p>Draw polygon or rectangle.</p>
+          </article>
+          <article>
+            <span>3</span>
+            <strong>Add bill</strong>
+            <p>Enter monthly electricity cost.</p>
+          </article>
+          <article>
+            <span>4</span>
+            <strong>Read report</strong>
+            <p>Panels, cost, savings, graphs.</p>
+          </article>
+        </div>
+
+        <section id="roof-map" class="map-section">
+          <div class="map-header">
+            <div class="map-copy">
+              <p class="eyebrow">Step 1 · Roof area from map</p>
+              <h2>Search the house and draw the rooftop.</h2>
+              <p>
+                Use satellite view, zoom close to the building, and trace only the usable roof. The
+                measured area is rounded and added to the calculator automatically.
+              </p>
+            </div>
+            <div class="map-measure-card">
+              <span>Measured roof</span>
+              <strong id="measuredAreaBadge">500 sq ft</strong>
+              <small>Auto-fills the roof area input</small>
+            </div>
+          </div>
+
+          <form id="mapSearchForm" class="map-search">
+            <label for="addressSearch">House address or landmark</label>
+            <div class="map-search-row">
+              <input
+                id="addressSearch"
+                type="search"
+                placeholder="Example: Indiranagar Bengaluru"
+                autocomplete="street-address"
+              />
+              <button type="submit">Search map</button>
+              <button id="clearRoofButton" class="secondary-button" type="button">Clear roof</button>
+            </div>
+            <p id="mapStatus" class="map-status">Search an address, then draw the roof outline.</p>
+          </form>
+
+          <div id="roofMap" class="roof-map" aria-label="Map for drawing roof area"></div>
+        </section>
+
+        <div class="calculator-layout">
+          <form id="solarForm" class="calculator-form">
+            <div id="calculator-form" class="form-anchor"></div>
+            <div class="form-heading">
+              <div>
+                <p class="eyebrow">Step 2 · Calculator</p>
+                <h3>Your inputs</h3>
+              </div>
+              <button id="demoButton" class="secondary-button" type="button">Use demo</button>
+            </div>
+
+            <div class="form-row">
+              <label for="city">City</label>
+              <select id="city" name="city" required></select>
+              <p id="tariffNote" class="data-note">Tariff data will appear here.</p>
+            </div>
+
+            <div class="form-row">
+              <label for="bill">Monthly electricity bill</label>
+              <div class="input-prefix">
+                <span>&#8377;</span>
+                <input
+                  id="bill"
+                  name="bill"
+                  type="number"
+                  min="500"
+                  step="100"
+                  value="3000"
+                  required
+                />
+              </div>
+            </div>
+
+            <div class="form-row">
+              <label for="roof">Usable roof area</label>
+              <div class="input-suffix">
+                <input
+                  id="roof"
+                  name="roof"
+                  type="number"
+                  min="80"
+                  step="10"
+                  value="500"
+                  required
+                />
+                <span>sq ft</span>
+              </div>
+            </div>
+
+            <button class="calculate-button" type="submit">Calculate solar report</button>
+
+            <p class="fine-print">
+              This is a planning estimate for hackathon/demo use. Final prices, net metering rules,
+              and subsidy eligibility should be verified with local DISCOMs and official portals.
+            </p>
+          </form>
+
+          <section class="results-panel" aria-live="polite">
+            <div class="report-heading">
+              <div>
+                <p class="eyebrow">Step 3 · Solar report</p>
+                <h3>Estimated rooftop system</h3>
+              </div>
+              <button id="printButton" class="secondary-button" type="button">Download report</button>
+            </div>
+            <div class="result-status" id="fitMessage">Ready for your numbers.</div>
+            <div class="results-grid">
+              <article class="metric-card">
+                <span class="metric-icon">P</span>
+                <p>Panels needed</p>
+                <strong id="panelsNeeded">-</strong>
+                <small id="systemSize">System size</small>
+              </article>
+
+              <article class="metric-card">
+                <span class="metric-icon">&#8377;</span>
+                <p>Installation cost</p>
+                <strong id="netCost">-</strong>
+                <small id="subsidyApplied">After subsidy</small>
+              </article>
+
+              <article class="metric-card">
+                <span class="metric-icon">S</span>
+                <p>Monthly savings</p>
+                <strong id="monthlySavings">-</strong>
+                <small id="coveredUnits">Units covered</small>
+              </article>
+
+              <article class="metric-card">
+                <span class="metric-icon">K</span>
+                <p>Annual output</p>
+                <strong id="annualOutput">-</strong>
+                <small id="annualOutputNote">kWh generated per year</small>
+              </article>
+
+              <article class="metric-card">
+                <span class="metric-icon">W</span>
+                <p>Today forecast</p>
+                <strong id="todayOutput">-</strong>
+                <small id="weatherNote">Predicted solar output</small>
+              </article>
+
+              <article class="metric-card">
+                <span class="metric-icon">%</span>
+                <p>Forecast factor</p>
+                <strong id="weatherFactor">-</strong>
+                <small id="weatherDetail">Sunshine and rain impact</small>
+              </article>
+
+              <article class="metric-card">
+                <span class="metric-icon">Y</span>
+                <p>Payback period</p>
+                <strong id="paybackPeriod">-</strong>
+                <small id="tenYearSavings">10-year value</small>
+              </article>
+
+              <article class="metric-card wide">
+                <span class="metric-icon">C</span>
+                <p>CO2 saved</p>
+                <strong id="co2Saved">-</strong>
+                <small>Tonnes avoided per year</small>
+              </article>
+            </div>
+          </section>
+        </div>
+
+        <div class="dashboard-charts">
+          <section class="chart-section">
+            <div class="chart-heading-row">
+              <div>
+                <p class="eyebrow">Weather forecast</p>
+                <h2>Weather-adjusted output</h2>
+              </div>
+              <div class="forecast-controls">
+                <label for="forecastPeriod">Graph period</label>
+                <div class="forecast-control-row">
+                  <select id="forecastPeriod">
+                    <option value="7">7 days</option>
+                    <option value="14">14 days</option>
+                    <option value="30">30 days</option>
+                    <option value="90">90 days</option>
+                    <option value="365">1 year</option>
+                    <option value="custom">Custom</option>
+                  </select>
+                  <input id="customForecastDays" type="number" min="1" max="365" step="1" value="21" />
+                </div>
+              </div>
+            </div>
+            <canvas id="forecastChart" aria-label="7 day weather adjusted solar output chart" role="img"></canvas>
+          </section>
+
+          <section class="chart-section">
+            <div>
+              <p class="eyebrow">Monthly generation</p>
+              <h2>Energy production</h2>
+            </div>
+            <canvas id="productionChart" aria-label="Monthly solar energy production chart" role="img"></canvas>
+          </section>
+
+          <section class="chart-section">
+            <div>
+              <p class="eyebrow">10 year view</p>
+              <h2>Return on investment</h2>
+            </div>
+            <canvas id="savingsChart" aria-label="10 year solar savings chart" role="img"></canvas>
+          </section>
+        </div>
+      </section>
+
+      <section id="nearby-suppliers" class="calculator-band" style="padding-top:48px;padding-bottom:48px;">
+        <div class="section-heading">
+          <p class="eyebrow">Step 4 · Find installers</p>
+          <h2>Solar panel suppliers near you</h2>
+          <p>Showing shops and installers within 10 km of the selected city centre. Click any result to open it in Google Maps.</p>
+        </div>
+        <div id="suppliersStatus" class="result-status" style="max-width:860px;">Select a city and calculate to load nearby suppliers.</div>
+        <div id="suppliersGrid" class="suppliers-grid"></div>
+      </section>
+
+      <section id="method" class="info-band">
+        <div class="section-heading">
+          <p class="eyebrow">How it calculates</p>
+          <h2>Simple enough to explain on stage</h2>
+        </div>
+        <div class="flow-grid">
+          <article>
+            <span>1</span>
+            <h3>Bill to units</h3>
+            <p>Monthly bill is divided by the selected city's electricity tariff.</p>
+          </article>
+          <article>
+            <span>2</span>
+            <h3>Units to system size</h3>
+            <p>Required kW is estimated from city solar generation and 30 monthly days.</p>
+          </article>
+          <article>
+            <span>3</span>
+            <h3>Roof check</h3>
+            <p>The tool limits capacity using about 90 sq ft per kW of usable rooftop space.</p>
+          </article>
+          <article>
+            <span>4</span>
+            <h3>Cost and impact</h3>
+            <p>It applies subsidy slabs, estimates savings, payback, and yearly CO2 avoided.</p>
+          </article>
+        </div>
+      </section>
+
+      <section id="open-source" class="open-band">
+        <div>
+          <p class="eyebrow">Open source</p>
+          <h2>Built for reuse by students, NGOs, and housing societies.</h2>
+          <p>
+            The app runs fully in the browser, costs nothing to host on GitHub Pages, and can be
+            improved by updating the city data and formula assumptions in one JavaScript file.
+          </p>
+        </div>
+      </section>
+    </main>
+
+    <script src="./app.js"></script>
+  </body>
+</html>
